@@ -1,0 +1,136 @@
+---
+title: "CaseStudy1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+
+library(tidyverse)
+
+#Reading the CSV file
+df <- read.csv("E:/Assessment/loans_full_schema.csv")
+view(df)
+summary(df)
+
+sum(df$emp_title=="")    #833
+
+
+```
+
+
+
+```{r}
+#Creating a new data frame
+df1 <- df[-which(df$emp_title==""),]
+
+
+```
+
+#Data Cleaning 
+
+Replacing NA values in annual income joint
+
+Replacing NA values of months since last deliquency with 0 since their were no frauds in the line of credit.
+
+Replacing NA values in month since 90 days late with 0 assuming that the applicants made payments on time.
+
+Replacing NA values in months since last credit inquiry with 0
+
+Replacing NA values in num accounts 120 days past due with 0 since the aggreagates of this column are zero.
+
+
+
+```{r}
+df1$annual_income_joint[is.na(df1$annual_income_joint)] <- mean(df$annual_income_joint,na.rm = TRUE)
+
+df1$debt_to_income_joint[is.na(df1$debt_to_income_joint)] <- mean(df$debt_to_income_joint,na.rm = TRUE)
+
+df1$months_since_last_delinq[is.na(df1$months_since_last_delinq)] <- 0
+
+df1$months_since_90d_late[is.na(df1$months_since_90d_late)] <- 0
+
+df1$months_since_last_credit_inquiry[is.na(df1$months_since_last_credit_inquiry)] <- 0
+
+df1$num_accounts_120d_past_due[is.na(df1$num_accounts_120d_past_due)] <- 0
+
+#Summary of data after cleaning it.
+view(df1)
+summary(df1)
+
+
+```
+
+#Visualizations
+
+1. Plotting the house ownership status of the applicants who were granted loan where we can observe that people whose house are mortgage are the maximum applications who were given loans. People who had there own houses are the least applications for the loans. 
+
+```{r}
+
+df1%>% ggplot(aes(x=df1$homeownership,fill=homeownership)) +
+              geom_bar()+
+              labs(x="Types",title="House ownership")
+
+
+
+```
+
+2. Plotting boxplot
+
+```{r}
+df1_loan_amount <- df1%>% group_by(homeownership)
+
+df1_loan_amount %>% ggplot(aes(x = homeownership, y = loan_amount, fill=homeownership)) +
+                    geom_boxplot() + 
+                    labs(x="Applicants Home Ownership", y = "Loan Amount" , title = "Loan Distribution")
+
+
+```
+
+3. Plotting Grade vs interest rate to see the relationship between them. We can observe from the plot that as the grade increases the interest rate on the loan also goes on increasing.The application marked as A grade have the lowest interest rate and with applications G grade have the highest interest rate.
+
+```{r}
+df1 %>% ggplot(aes(x=grade ,y = interest_rate ,group = 1))+
+  geom_point() +
+  labs(x = "Grade",y = "Interest Rate" , title = "Interest Rate vs Application Grade")
+
+
+```
+4. Observing the distribution of Interest Rate. People are given more loans at interest rate of 10%. Higher the interest rate the applicants goes on decreasing. 
+
+
+```{r}
+df1 %>% ggplot(aes(x = interest_rate)) +
+        geom_histogram(fill = "#006EA1",binwidth = 2)+
+        labs(x = "Interest Rate", y = "Number of Applicants", title = "Distribution of Interest Rate")
+
+```
+
+5. Analysing the average loan amount and average interest rate given to the applicants based on the reason loans were taken for. Here we can observe that loans taken for vacation were given less loan amount with high average interest rate. 
+
+```{r}
+
+df1_loan_purpose <- df1 %>% select(loan_purpose,loan_amount,interest_rate) %>%
+                  group_by(loan_purpose) %>%
+                  summarise(loan_amount = mean(loan_amount),
+                            interest_rate = mean(interest_rate))
+
+df1_loan_purpose
+
+
+```
+
+
+#Machine Learning Models.
+
+
+```{r}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
